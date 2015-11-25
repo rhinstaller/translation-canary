@@ -61,7 +61,7 @@ def testString(poentry):
     for test in _tests:
         try:
             test(poentry)
-        except Exception as e:
+        except Exception as e: # pylint: disable=broad-except
             success = False
             print("%s failed on %s: %s" % (test.__name__, poentry.msgid, str(e)))
     

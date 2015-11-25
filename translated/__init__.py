@@ -70,7 +70,7 @@ def testFile(mofile, prefix=None):
                 # Print any warnings collected
                 for warn in w:
                     print("%s warned on %s: %s" % (test.__name__, moerror, warn.message))
-        except Exception as e:
+        except Exception as e: # pylint: disable=broad-except
             success = False
             print("%s failed on %s: %s" % (test.__name__, moerror, str(e)))
 
@@ -88,8 +88,8 @@ def testArchive(archive):
     archive_dir = tempfile.mkdtemp(prefix='translation-tests.')
     try:
         shutil.unpack_archive(archive, archive_dir)
-        for dir, _dirnames, paths in os.walk(archive_dir):
-            for mofile in (os.path.join(dir, path) for path in paths
+        for dirpath, _dirnames, paths in os.walk(archive_dir):
+            for mofile in (os.path.join(dirpath, path) for path in paths
                     if path.endswith('.mo') or path.endswith('.gmo')):
                 if not testFile(mofile, prefix=archive_dir + "/"):
                     success = False

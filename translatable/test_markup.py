@@ -21,10 +21,6 @@
 from pocketlint.pangocheck import is_markup, markup_necessary
 import xml.etree.ElementTree as ET
 
-import gi
-gi.require_version("GLib", "2.0")
-from gi.repository import GLib
-
 def test_markup(poentry):
     # Unnecessary markup is markup applied to an entire string, such as
     # _("<b>Bold Text</b>"). This could be instead be translated as
@@ -33,6 +29,8 @@ def test_markup(poentry):
 
     if is_markup(poentry.msgid):
         # Wrap the string in <markup> nodes, parse it, test it
-        tree = ET.fromstring("<markup>%s</markup>" % GLib.markup_escape_text(poentry.msgid))
+        # The markup is unescaped on purpose
+        # pylint: disable=unescaped-markup
+        tree = ET.fromstring("<markup>%s</markup>" % poentry.msgid)
         if not markup_necessary(tree):
             raise AssertionError("Unnecessary markup")
