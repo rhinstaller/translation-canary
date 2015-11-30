@@ -4,4 +4,5 @@ all:
 	@echo "nothing to build"
 
 check:
-	tests/pylint/runpylint.py
+	PYTHONPATH=. tests/pylint/runpylint.py
+	python3 -m unittest discover tests/unittests
