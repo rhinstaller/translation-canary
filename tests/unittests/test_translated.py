@@ -77,7 +77,11 @@ class TestPercentage(unittest.TestCase):
         self.tmpdir = tempfile.mkdtemp()
         self.popath = os.path.join(self.tmpdir, "test.po")
         self.mopath = os.path.join(self.tmpdir, "test.mo")
+
+        # Convert warnings into exceptions to make them easier to test for
         warnings.simplefilter("error")
+        # polib throws a DeprecationWarnings so ignore that
+        warnings.simplefilter("default", DeprecationWarning)
 
     def tearDown(self):
         shutil.rmtree(self.tmpdir)
@@ -97,6 +101,8 @@ class TestPercentage(unittest.TestCase):
         pofile.append(polib.POEntry(msgid="test string", msgstr=""))
         pofile.save(self.popath)
         pofile.save_as_mofile(self.mopath)
+
+        self.assertRaises(Warning, test_percentage, self.mopath)
 
 class TestUsability(unittest.TestCase):
     def test_ok(self):
