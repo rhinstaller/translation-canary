@@ -21,9 +21,9 @@ import shutil
 import os
 import polib
 
-from translated.test_markup import test_markup
-from translated.test_percentage import test_percentage
-from translated.test_usability import test_usability
+from translation_canary.translated.test_markup import test_markup
+from translation_canary.translated.test_percentage import test_percentage
+from translation_canary.translated.test_usability import test_usability
 
 # convert a polib.MOFile into a NamedTemporaryFile
 def mofile(moobj):

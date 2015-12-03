@@ -64,7 +64,7 @@ def testString(poentry):
         except Exception as e: # pylint: disable=broad-except
             success = False
             print("%s failed on %s: %s" % (test.__name__, poentry.msgid, str(e)))
-    
+
     return success
 
 def testPOT(potfile):

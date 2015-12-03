@@ -19,8 +19,8 @@
 import unittest
 from polib import POEntry
 
-from translatable.test_markup import test_markup
-from translatable.test_comment import test_comment
+from translation_canary.translatable.test_markup import test_markup
+from translation_canary.translatable.test_comment import test_comment
 
 class TestMarkup(unittest.TestCase):
     def test_ok(self):
