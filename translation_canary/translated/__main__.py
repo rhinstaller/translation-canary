@@ -19,15 +19,15 @@
 # Red Hat Author(s): David Shea <dshea@redhat.com>
 
 import sys
-from . import testArchive
+from . import testSourceTree
 
 if len(sys.argv) < 2:
-    print("Usage: translation_tests <archive> [<archive> ...]")
+    print("Usage: translation_tests <source tree> [<source tree> ...]")
     sys.exit(1)
 
 status = 0
-for archive in sys.argv[1:]:
-    if not testArchive(archive):
+for srcdir in sys.argv[1:]:
+    if not testSourceTree(srcdir):
         status = 1
 
 sys.exit(status)

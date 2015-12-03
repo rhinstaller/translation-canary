@@ -28,7 +28,7 @@ Each test is called with the name of .mo file to test as an argument. A test
 passes if it returns without raising an exception.
 """
 
-import tempfile, shutil, os, warnings
+import os, warnings
 
 _tests = []
 
@@ -76,24 +76,20 @@ def testFile(mofile, prefix=None):
 
     return success
 
-def testArchive(archive):
-    """Runs all registered tests against all .mo files in the given archive.
+def testSourceTree(srcdir):
+    """Runs all registered tests against all .mo files in the given directory.
 
-       :param str archive: The path to an archive containing .mo files
+       :param str srcdir: The path to the source directory to check
        :return: whether the checks succeeded or not
        :rtype: bool
     """
     success = True
+    srcdir = os.path.normpath(srcdir)
 
-    archive_dir = tempfile.mkdtemp(prefix='translation-tests.')
-    try:
-        shutil.unpack_archive(archive, archive_dir)
-        for dirpath, _dirnames, paths in os.walk(archive_dir):
-            for mofile in (os.path.join(dirpath, path) for path in paths
-                    if path.endswith('.mo') or path.endswith('.gmo')):
-                if not testFile(mofile, prefix=archive_dir + "/"):
-                    success = False
-    finally:
-        shutil.rmtree(archive_dir, ignore_errors=True)
+    for dirpath, _dirnames, paths in os.walk(srcdir):
+        for mofile in (os.path.join(dirpath, path) for path in paths
+                if path.endswith('.mo') or path.endswith('.gmo')):
+            if not testFile(mofile, prefix=srcdir + "/"):
+                success = False
 
     return success

@@ -22,7 +22,7 @@ translatable:
 translated:
   This contains checks on the strings returned from the translators. This
   ensures that the content of the translated strings won't break anything.
-  These tests are run on the source distribution before creating a release.
+  These tests are run on the source directory before creating a release.
 
 Both translatable and translated are run by running the module
 (e.g., `python3 -m translation_canary.translatable`) with the input file(s) as
