@@ -28,6 +28,7 @@ except ImportError:
     raise
 
 from pocketlint.pangocheck import is_markup, markup_match
+import xml.etree.ElementTree as ET
 
 def test_markup(mofile):
     mo = polib.mofile(mofile)
@@ -36,9 +37,26 @@ def test_markup(mofile):
         if is_markup(entry.msgid):
             # If this is a plural, check each of the plural translations
             if entry.msgid_plural:
-                for plural_id, msgstr in entry.msgstr_plural.items():
-                    if not markup_match(entry.msgid, msgstr):
+                xlations = entry.msgstr_plural
+            else:
+                xlations = {None: entry.msgstr}
+
+            for plural_id, msgstr in xlations.items():
+                # Check if the markup is valid at all
+                try:
+                    # pylint: disable=unescaped-markup
+                    ET.fromstring('<markup>%s</markup>' % msgstr)
+                except ET.ParseError:
+                    if entry.msgid_plural:
+                        raise AssertionError("Invalid markup translation for %d translation of msgid %s" %
+                                (plural_id, entry.msgid))
+                    else:
+                        raise AssertionError("Invalid markup translation for msgid %s" % entry.msgid)
+
+                # Check if the markup has the same number and kind of tags
+                if not markup_match(entry.msgid, msgstr):
+                    if entry.msgid_plural:
                         raise AssertionError("Markup does not match for %d translation of msgid %s" %
                                 (plural_id, entry.msgid))
-            elif not markup_match(entry.msgid, entry.msgstr):
-                raise AssertionError("Markup does not match for msgid %s" % entry.msgid)
+                    else:
+                        raise AssertionError("Markup does not match for msgid %s" % entry.msgid)

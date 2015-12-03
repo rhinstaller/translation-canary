@@ -38,6 +38,9 @@ def mofile_from_entry(*args, **kwargs):
     return mofile(moobj)
 
 class TestMarkup(unittest.TestCase):
+    # I know, pylint, that's the point
+    # pylint: disable=invalid-markup
+
     def test_ok(self):
         # no markup
         with mofile_from_entry(msgid="test string", msgstr="estay ingstray") as m:
@@ -67,6 +70,11 @@ class TestMarkup(unittest.TestCase):
     def test_mismatch_plural(self):
         with mofile_from_entry(msgid="%d <b>bold</b> string", msgid_plural="%d <b>bold</b> strings",
                 msgstr_plural={0: "%d <b>olbday</b> ingstray", 1: "%d oldbay ingstrays"}) as m:
+            self.assertRaises(AssertionError, test_markup, m.name)
+
+    def test_invalid(self):
+        # Tags themselves are valid, but the XML is not
+        with mofile_from_entry(msgid="<b>bold</b> string", msgstr="<b/>oldbay</b> ingstray") as m:
             self.assertRaises(AssertionError, test_markup, m.name)
 
 class TestPercentage(unittest.TestCase):
