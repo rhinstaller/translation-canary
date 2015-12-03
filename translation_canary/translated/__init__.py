@@ -28,7 +28,7 @@ Each test is called with the name of .mo file to test as an argument. A test
 passes if it returns without raising an exception.
 """
 
-import sys, tempfile, shutil, os, warnings
+import tempfile, shutil, os, warnings
 
 _tests = []
 
