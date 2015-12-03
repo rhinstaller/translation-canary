@@ -18,16 +18,22 @@
 #
 # Red Hat Author(s): David Shea <dshea@redhat.com>
 
-import sys
+import sys, argparse
 from . import testSourceTree
 
-if len(sys.argv) < 2:
-    print("Usage: translation_tests <source tree> [<source tree> ...]")
-    sys.exit(1)
+ap = argparse.ArgumentParser(description='Validate translated strings')
+ap.add_argument('--release', action='store_true', default=False,
+        help='Run in release mode')
+ap.add_argument('--test', dest='release', action='store_false',
+        help='Run in test mode')
+ap.add_argument('source_trees', metavar='SOURCE-TREE', nargs='+',
+        help='Source directory to test')
+
+args = ap.parse_args()
 
 status = 0
-for srcdir in sys.argv[1:]:
-    if not testSourceTree(srcdir):
+for srcdir in args.source_trees:
+    if not testSourceTree(srcdir, args.release):
         status = 1
 
 sys.exit(status)

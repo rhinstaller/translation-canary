@@ -47,8 +47,33 @@ for finder, mod_name, _ispkg in pkgutil.iter_modules(__path__):
         if attrname.startswith('test_') and callable(attr):
             _tests.append(attr)
 
-def testFile(mofile, prefix=None):
+def _remove_lingua(linguas, language):
+    # Read in the LINGUAS file
+    with open(linguas, "rt") as f:
+        lingua_lines = f.readlines()
+
+    output_lines = []
+    for line in lingua_lines:
+        # Leave comments alone
+        if line.startswith('#'):
+            output_lines.append(line)
+            continue
+
+        # Split the line into a list of languages, remove the one we don't
+        # want, and put it back together
+        lingua_list = line.split()
+        lingua_list.remove(language)
+        output_lines.append(" ".join(lingua_list))
+
+    # Write LINGUAS back out
+    with open(linguas, "wt") as f:
+        f.writelines(output_lines)
+
+def testFile(mofile, prefix=None, releaseMode=False):
     """Run all registered tests against the given .mo file.
+
+       If run in release mode, this function will always return true, and if
+       the mofile does not pass the tests the langauge will be removed.
 
        :param str mofile: The .mo file name to check
        :param str prefix: An optional directory prefix to strip from error messages
@@ -71,15 +96,39 @@ def testFile(mofile, prefix=None):
                 for warn in w:
                     print("%s warned on %s: %s" % (test.__name__, moerror, warn.message))
         except Exception as e: # pylint: disable=broad-except
-            success = False
             print("%s failed on %s: %s" % (test.__name__, moerror, str(e)))
+            if releaseMode:
+                # Remove the mo file and the po file it was built from
+                print("Removing %s" % mofile)
+                os.remove(mofile)
+
+                pofile = os.path.splitext(mofile)[0] + '.po'
+                print("Removing %s" % pofile)
+                os.remove(pofile)
+
+                # If there is a LINGUAS file in the po directory, remove the
+                # language from it
+                linguas = os.path.join(os.path.dirname(mofile), 'LINGUAS')
+                if os.path.exists(linguas):
+                    language = os.path.splitext(os.path.basename(mofile))[0]
+                    print("Removing %s from LINGUAS" % language)
+                    _remove_lingua(linguas, language)
+
+                # No need to run the rest of the tests since we just killed the file
+                break
+            else:
+                success = False
 
     return success
 
-def testSourceTree(srcdir):
+def testSourceTree(srcdir, releaseMode=False):
     """Runs all registered tests against all .mo files in the given directory.
 
+       If run in release mode, this function will always return True and the
+       languages that do not pass the tests will be removed.
+
        :param str srcdir: The path to the source directory to check
+       :param bool releaseMode: whether to run in release mode
        :return: whether the checks succeeded or not
        :rtype: bool
     """
@@ -89,7 +138,7 @@ def testSourceTree(srcdir):
     for dirpath, _dirnames, paths in os.walk(srcdir):
         for mofile in (os.path.join(dirpath, path) for path in paths
                 if path.endswith('.mo') or path.endswith('.gmo')):
-            if not testFile(mofile, prefix=srcdir + "/"):
+            if not testFile(mofile, prefix=srcdir + "/", releaseMode=releaseMode):
                 success = False
 
     return success
