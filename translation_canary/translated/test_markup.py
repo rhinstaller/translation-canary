@@ -30,10 +30,10 @@ except ImportError:
 from pocketlint.pangocheck import is_markup, markup_match
 import xml.etree.ElementTree as ET
 
-def test_markup(mofile):
-    mo = polib.mofile(mofile)
+def test_markup(pofile):
+    po = polib.pofile(pofile)
 
-    for entry in mo.translated_entries():
+    for entry in po.translated_entries():
         if is_markup(entry.msgid):
             # If this is a plural, check each of the plural translations
             if entry.msgid_plural:
