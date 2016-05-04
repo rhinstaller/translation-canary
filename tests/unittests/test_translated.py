@@ -23,7 +23,7 @@ import os
 
 from translation_canary.translated.test_markup import test_markup
 from translation_canary.translated.test_percentage import test_percentage
-from translation_canary.translated.test_usability import test_usability
+from translation_canary.translated.test_usability import test_usability, test_msgfmt
 
 from translation_canary.translated import testFile, testSourceTree
 
@@ -36,6 +36,7 @@ def pofile(poobj):
 # convenience function for creating a single-entry mofile
 def pofile_from_entry(*args, **kwargs):
     poobj = polib.POFile()
+    poobj.metadata["Content-Type"] = "text/plain; charset=UTF-8"
     poobj.append(polib.POEntry(*args, **kwargs))
     return pofile(poobj)
 
@@ -115,6 +116,24 @@ class TestUsability(unittest.TestCase):
 
         with pofile(poobj) as p:
             self.assertRaises(Exception, test_usability, p.name)
+
+class TestMsgFmt(unittest.TestCase):
+    def test_ok(self):
+        with pofile_from_entry(msgid="test string", msgstr="estay ingstray") as p:
+            test_msgfmt(p.name)
+
+    # Test a few cases that msgfmt will catch
+    def test_busted_newlines(self):
+        with pofile_from_entry(msgid="multi\nline\nstring", msgstr="ultimay\ninelay\ningstray\n") as p:
+            self.assertRaises(AssertionError, test_msgfmt, p.name)
+
+    def test_busted_format(self):
+        with pofile_from_entry(msgid="test %(type)s", msgstr="estay", flags=["python-format"]) as p:
+            self.assertRaises(AssertionError, test_msgfmt, p.name)
+
+    def test_translated_format(self):
+        with pofile_from_entry(msgid="test %(type)s", msgstr="estay %(ypetay)", flags=["python-format"]) as p:
+            self.assertRaises(AssertionError, test_msgfmt, p.name)
 
 # Test the top-level functions
 # fake tests for testing with

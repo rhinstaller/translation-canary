@@ -24,6 +24,7 @@
 import gettext
 import tempfile
 import polib
+import subprocess
 
 def test_usability(pofile):
     # Use polib to write a mofile
@@ -33,3 +34,13 @@ def test_usability(pofile):
 
         # Try to open it
         _t = gettext.GNUTranslations(fp=mofile)
+
+def test_msgfmt(pofile):
+    # Check that the .po file can actually be compiled
+    with tempfile.NamedTemporaryFile(mode="w+b", suffix=".mo") as mofile:
+        try:
+            # Ignore the output on success
+            subprocess.check_output(["msgfmt", "-c", "--verbose", "-o", mofile.name, pofile],
+                                    stderr=subprocess.STDOUT, universal_newlines=True)
+        except subprocess.CalledProcessError as e:
+            raise AssertionError("Unable to compile %s: %s" % (pofile, e.output))
