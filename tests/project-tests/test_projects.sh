@@ -22,18 +22,19 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
-podir="$(mktemp -d canary.XXXXXX)"
-trap 'rm -rf "$podir"' EXIT
-
 status=0
 while read project_name branch ; do
     echo "Testing $project_name:$branch"
+
+    podir="$(mktemp -d ${project_name}-${branch}.XXXXXX)"
+
     # The zanata output only matters if something goes wrong
     zanata_output="$(zanata pull --project-type gettext --project-id "$project_name" --project-version "$branch" --transdir "$podir" --url https://fedora.zanata.org/ 2>&1)"
     if [ $? -ne 0 ]; then
         echo "Zanata pull failed for $project_name:$branch"
         echo "$zanata_output"
         status=1
+        rm -rf "$podir"
         continue
     fi
 
@@ -45,6 +46,8 @@ while read project_name branch ; do
     else
         echo "Success: $project_name:$branch"
     fi
+
+    rm -rf "$podir"
 done < "$1"
 
 exit "$status"
