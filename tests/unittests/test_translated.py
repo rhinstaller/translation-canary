@@ -192,6 +192,20 @@ class TestTestFile(unittest.TestCase):
             with open(os.path.join(d, "LINGUAS"), "r")  as linguas:
                 self.assertEqual(linguas.read().strip(), "other")
 
+    @unittest.mock.patch("translation_canary.translated._tests", [_false_test])
+    def test_release_mode_failure_with_lingua_no_modify(self):
+        with tempfile.TemporaryDirectory() as d:
+            open(os.path.join(d, "test.po"), "w").close()
+            with open(os.path.join(d, "LINGUAS"), "w") as linguas:
+                linguas.write("test other\n")
+
+            # Check that test.po is removed and test is *not* removed from LINGUAS
+            self.assertTrue(testFile(os.path.join(d, "test.po"), releaseMode=True, modifyLinguas=False))
+            self.assertFalse(os.path.exists(os.path.join(d, "test.po")))
+
+            with open(os.path.join(d, "LINGUAS"), "r") as linguas:
+                self.assertEqual(linguas.read().strip(), "test other")
+
 @unittest.mock.patch("translation_canary.translated._tests", [_picky_test])
 class TestTestSourceTree(unittest.TestCase):
     def setUp(self):
@@ -240,3 +254,17 @@ class TestTestSourceTree(unittest.TestCase):
 
         with open(os.path.join(self.tmpdir, "LINGUAS")) as l:
             self.assertEqual(l.read().strip(), "aa")
+
+    def test_release_mode_failure_with_lingua_no_modify(self):
+        open(os.path.join(self.tmpdir, "aa.po"), "w").close()
+        open(os.path.join(self.tmpdir, "pa.po"), "w").close()
+
+        with open(os.path.join(self.tmpdir, "LINGUAS"), "w") as l:
+            l.write("aa pa\n")
+
+        self.assertTrue(testSourceTree(self.tmpdir, releaseMode=True, modifyLinguas=False))
+        self.assertTrue(os.path.exists(os.path.join(self.tmpdir, "aa.po")))
+        self.assertFalse(os.path.exists(os.path.join(self.tmpdir, "pa.po")))
+
+        with open(os.path.join(self.tmpdir, "LINGUAS")) as l:
+            self.assertEqual(l.read().strip(), "aa pa")

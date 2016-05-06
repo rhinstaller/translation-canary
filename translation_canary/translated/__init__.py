@@ -69,7 +69,7 @@ def _remove_lingua(linguas, language):
     with open(linguas, "wt") as f:
         f.writelines(output_lines)
 
-def testFile(pofile, prefix=None, releaseMode=False):
+def testFile(pofile, prefix=None, releaseMode=False, modifyLinguas=True):
     """Run all registered tests against the given .mo file.
 
        If run in release mode, this function will always return true, and if
@@ -77,6 +77,8 @@ def testFile(pofile, prefix=None, releaseMode=False):
 
        :param str mofile: The .mo file name to check
        :param str prefix: An optional directory prefix to strip from error messages
+       :param bool releaseMode: whether to run in release mode
+       :param bool modifyLinguas: whether to remove translations from LINGUAS in release mode
        :return: whether the checks succeeded or not
        :rtype: bool
     """
@@ -113,13 +115,14 @@ def testFile(pofile, prefix=None, releaseMode=False):
                     print("Removing %s" % gmofile)
                     os.remove(gmofile)
 
-                # If there is a LINGUAS file in the po directory, remove the
-                # language from it
-                linguas = os.path.join(os.path.dirname(mofile), 'LINGUAS')
-                if os.path.exists(linguas):
-                    language = os.path.splitext(os.path.basename(pofile))[0]
-                    print("Removing %s from LINGUAS" % language)
-                    _remove_lingua(linguas, language)
+                if modifyLinguas:
+                    # If there is a LINGUAS file in the po directory, remove the
+                    # language from it
+                    linguas = os.path.join(os.path.dirname(mofile), 'LINGUAS')
+                    if os.path.exists(linguas):
+                        language = os.path.splitext(os.path.basename(pofile))[0]
+                        print("Removing %s from LINGUAS" % language)
+                        _remove_lingua(linguas, language)
 
                 # No need to run the rest of the tests since we just killed the file
                 break
@@ -128,7 +131,7 @@ def testFile(pofile, prefix=None, releaseMode=False):
 
     return success
 
-def testSourceTree(srcdir, releaseMode=False):
+def testSourceTree(srcdir, releaseMode=False, modifyLinguas=True):
     """Runs all registered tests against all .po files in the given directory.
 
        If run in release mode, this function will always return True and the
@@ -136,6 +139,7 @@ def testSourceTree(srcdir, releaseMode=False):
 
        :param str srcdir: The path to the source directory to check
        :param bool releaseMode: whether to run in release mode
+       :param bool modifyLinguas: whether to remove translations from LINGUAS in release mode
        :return: whether the checks succeeded or not
        :rtype: bool
     """
@@ -144,7 +148,7 @@ def testSourceTree(srcdir, releaseMode=False):
 
     for dirpath, _dirnames, paths in os.walk(srcdir):
         for pofile in (os.path.join(dirpath, path) for path in paths if path.endswith('.po')):
-            if not testFile(pofile, prefix=srcdir + "/", releaseMode=releaseMode):
+            if not testFile(pofile, prefix=srcdir + "/", releaseMode=releaseMode, modifyLinguas=modifyLinguas):
                 success = False
 
     return success
