@@ -17,3 +17,5 @@ pykickstart master
 libbytesize master
 python-meh rhel7-branch
 python-meh master
+system-config-kickstart master
+system-config-kickstart rhel7-branch
